@@ -1,0 +1,30 @@
+name: mygitea
+
+services:
+  gitea:
+    image: gitea/gitea:28.4
+    container_name: gitea
+    restart: unless-stopped
+    environment:
+      USER_UID: "1000"
+      USER_GID: "1000"
+      GITEA__server__DOMAIN: gitea.knowslog.com
+      GITEA__server__ROOT_URL: https://gitea.knowslog.com/
+      GITEA__server__HTTP_PORT: "3000"
+      # SSH is not routed through the Cloudflare tunnel; clone over HTTPS.
+      GITEA__server__DISABLE_SSH: "true"
+      GITEA__database__DB_TYPE: sqlite3
+      # Lock the web installer: the site is public as soon as the tunnel is up.
+      GITEA__security__INSTALL_LOCK: "true"
+      GITEA__service__DISABLE_REGISTRATION: "true"
+      GITEA__service__REQUIRE_SIGNIN_VIEW: "false"
+    volumes:
+      - gitea-data:/data
+      - /etc/timezone:/etc/timezone:ro
+      - /etc/localtime:/etc/localtime:ro
+    ports:
+      # Localhost only; public access goes through cloudflared.
+      - "127.0.0.1:3030:3000"
+
+volumes:
+  gitea-data:
