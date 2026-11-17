@@ -1,2 +1,5 @@
 # cf CLI local cache (account ID, email)
 .cloudflare/
+
+# runner registration token
+.env

@@ -31,6 +31,22 @@ docker run --rm -v mygitea_gitea-data:/data -v "$PWD":/backup alpine tar czf /ba
 docker compose start gitea
 ```
 
+## Actions runner
+
+`runner` service (act_runner) is an instance-wide runner. Labels and cache settings live in `runner-config.yaml`:
+
+- `ubuntu-latest`, `ubuntu-24.04` map to `docker.gitea.com/runner-images:*`.
+- Job containers join the `mygitea_default` network and reach Gitea at `http://gitea:3000` and the cache at `gitea-runner:8088`.
+- It mounts the host Docker socket, which is root-equivalent on the host. Only accounts created by the admin can run workflows.
+
+Registration happens once and is stored in the `mygitea_runner-data` volume. To register again (e.g. after deleting the volume):
+
+```bash
+RUNNER_REGISTRATION_TOKEN=$(docker exec -u git gitea gitea actions generate-runner-token | tail -1) docker compose up -d runner
+```
+
+Workflows in `.github/workflows` run as-is when `.gitea/workflows` is absent. `actions/upload-artifact@v4+` and `download-artifact@v4+` fail on Gitea (`GHESNotSupportedError`); use `@v3`.
+
 ## MCP (Claude Code)
 
 Uses the official [gitea-mcp](https://gitea.com/gitea/gitea-mcp) server via Docker.

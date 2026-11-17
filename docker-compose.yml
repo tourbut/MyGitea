@@ -26,5 +26,24 @@ services:
       # Localhost only; public access goes through cloudflared.
       - "127.0.0.1:3030:3000"
 
+  runner:
+    image: gitea/act_runner:0.6.1
+    container_name: gitea-runner
+    restart: unless-stopped
+    depends_on:
+      - gitea
+    environment:
+      CONFIG_FILE: /config.yaml
+      GITEA_INSTANCE_URL: http://gitea:3000
+      # Only read on first start; registration is then kept in /data/.runner.
+      GITEA_RUNNER_REGISTRATION_TOKEN: ${RUNNER_REGISTRATION_TOKEN:-}
+      GITEA_RUNNER_NAME: knowslog-runner
+    volumes:
+      - ./runner-config.yaml:/config.yaml:ro
+      - runner-data:/data
+      # Job containers run on the host Docker daemon (root-equivalent access).
+      - /var/run/docker.sock:/var/run/docker.sock
+
 volumes:
   gitea-data:
+  runner-data:
